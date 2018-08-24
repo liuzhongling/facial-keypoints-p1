@@ -42,7 +42,8 @@ class FacialKeypointsDataset(Dataset):
 
         if self.transform:
             sample = self.transform(sample)
-
+            # sample['image'].cuda()
+            # sample['keypoints'].cuda()
         return sample
     
 
@@ -84,7 +85,7 @@ class Rescale(object):
 
     def __init__(self, output_size):
         assert isinstance(output_size, (int, tuple))
-        self.output_size = output_size
+        self.output_size = np.random.randint(output_size-25, output_size)
 
     def __call__(self, sample):
         image, key_pts = sample['image'], sample['keypoints']
@@ -159,3 +160,19 @@ class ToTensor(object):
         
         return {'image': torch.from_numpy(image),
                 'keypoints': torch.from_numpy(key_pts)}
+
+
+class ColorContrast(object):
+    """Change the brightness and Saturation of sandarrays in sample ."""
+    def __init__(self, alpha, beta):
+        self.alpha = alpha
+        self.beta = beta
+    def __call__(self, sample):
+        image, key_pts = sample['image'], sample['keypoints']
+        if np.random.random() > 0.5:
+            alpha = self.alpha * np.random.randint(-2, 2)
+            beta = self.beta * np.random.randint(-5, 5)
+            image =  np.uint8(np.clip(((1 + alpha) * image + beta), 0, 255))
+        return {'image': image, 'keypoints': key_pts}
+ 
+   
